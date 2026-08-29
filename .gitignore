@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+firebase-service-account.json
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Models & caches
+.paddleocr/
+*.pdiparams*
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+*.log
+tsconfig.tsbuildinfo

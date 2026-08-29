@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens — premium AI SaaS palette (Stripe / OpenAI / Arc)
+   Light values in :root, dark overrides in .dark.
+   Every @theme token maps to a CSS variable so both blocks can reassign.
+--------------------------------------------------------------------------- */
+:root {
+  --brand-primary: #4f46e5;
+  --brand-primary-foreground: #ffffff;
+  --brand-primary-hover: #4338ca;
+
+  --brand-secondary: #eef2ff;
+  --brand-secondary-foreground: #4338ca;
+
+  --brand-accent: #38bdf8;
+  --brand-accent-foreground: #0c4a6e;
+
+  --brand-success: #10b981;
+  --brand-success-foreground: #064e3b;
+
+  --brand-warning: #f59e0b;
+  --brand-warning-foreground: #78350f;
+
+  --brand-destructive: #ef4444;
+  --brand-destructive-foreground: #ffffff;
+
+  --surface-background: #f8fafc;
+  --surface-foreground: #0f172a;
+  --surface-card: #ffffff;
+  --surface-card-foreground: #0f172a;
+  --surface-muted: #f1f5f9;
+  --surface-muted-foreground: #475569;
+  --surface-border: #e2e8f0;
+  --surface-input: #cbd5e1;
+  --surface-ring: #6366f1;
+}
+
+.dark {
+  --brand-primary: #6366f1;
+  --brand-primary-foreground: #ffffff;
+  --brand-primary-hover: #818cf8;
+
+  --brand-secondary: #312e81;
+  --brand-secondary-foreground: #c7d2fe;
+
+  --brand-accent: #0ea5e9;
+  --brand-accent-foreground: #f0f9ff;
+
+  --brand-success: #34d399;
+  --brand-success-foreground: #022c22;
+
+  --brand-warning: #fbbf24;
+  --brand-warning-foreground: #451a03;
+
+  --brand-destructive: #f87171;
+  --brand-destructive-foreground: #ffffff;
+
+  --surface-background: #0f172a;
+  --surface-foreground: #f1f5f9;
+  --surface-card: #1e293b;
+  --surface-card-foreground: #f1f5f9;
+  --surface-muted: #334155;
+  --surface-muted-foreground: #cbd5e1;
+  --surface-border: #334155;
+  --surface-input: #475569;
+  --surface-ring: #818cf8;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-poppins), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: var(--surface-background);
+  --color-foreground: var(--surface-foreground);
+
+  --color-card: var(--surface-card);
+  --color-card-foreground: var(--surface-card-foreground);
+
+  --color-primary: var(--brand-primary);
+  --color-primary-foreground: var(--brand-primary-foreground);
+
+  --color-secondary: var(--brand-secondary);
+  --color-secondary-foreground: var(--brand-secondary-foreground);
+
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--surface-muted-foreground);
+
+  --color-accent: var(--brand-accent);
+  --color-accent-foreground: var(--brand-accent-foreground);
+
+  --color-success: var(--brand-success);
+  --color-success-foreground: var(--brand-success-foreground);
+
+  --color-warning: var(--brand-warning);
+  --color-warning-foreground: var(--brand-warning-foreground);
+
+  --color-destructive: var(--brand-destructive);
+  --color-destructive-foreground: var(--brand-destructive-foreground);
+
+  --color-border: var(--surface-border);
+  --color-input: var(--surface-input);
+  --color-ring: var(--surface-ring);
+
+  /* 16px spec: --radius-2xl = 1rem (was 1.25rem / 20px) */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background: #c7d2fe;
+  color: #1e1b4b;
+}
+.dark ::selection {
+  background: #312e81;
+  color: #eef2ff;
+}
+
+/* ---------------------------------------------------------------------------
+   Hero decorations
+--------------------------------------------------------------------------- */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(79, 70, 229, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(79, 70, 229, 0.055) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+.dark .bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(129, 140, 248, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(129, 140, 248, 0.08) 1px, transparent 1px);
+}
+
+.glow-indigo {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 0%,
+    rgba(79, 70, 229, 0.18),
+    transparent 70%
+  );
+}
+.dark .glow-indigo {
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 0%,
+    rgba(129, 140, 248, 0.14),
+    transparent 70%
+  );
+}
+
+.text-gradient-indigo {
+  background: linear-gradient(120deg, #4338ca 0%, #4f46e5 45%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-hover {
+  transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
+}
+.card-hover:hover {
+  box-shadow: 0 12px 32px -12px rgba(79, 70, 229, 0.18);
+  transform: translateY(-2px);
+}
+.dark .card-hover:hover {
+  box-shadow: 0 12px 32px -12px rgba(99, 102, 241, 0.35);
+}
+
+/* Glassmorphism utility for hero panels */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+.dark .glass {
+  background: rgba(30, 41, 59, 0.72);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+/* ---------------------------------------------------------------------------
+   Leaflet — keep the map below the sticky navbar and restyle popups
+--------------------------------------------------------------------------- */
+.leaflet-container {
+  z-index: 0;
+  font: inherit;
+  border-radius: 1rem;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.85rem;
+  box-shadow: 0 12px 32px -12px rgba(79, 70, 229, 0.25);
+}
+
+.leaflet-popup-content {
+  margin: 14px 16px;
+  font-family: inherit;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: #1e293b;
+  color: #f1f5f9;
+  box-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.6);
+}
+.dark .leaflet-popup-tip {
+  background: #1e293b;
+}
+
+.medico-marker {
+  background: transparent;
+  border: none;
+}
+
+.medico-marker__pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9999px;
+  background: #4f46e5;
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.22), 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.medico-marker__pin--low {
+  background: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.22), 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.medico-marker__pin--user {
+  background: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.22), 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* ---------------------------------------------------------------------------
+   Scrollbar (subtle, Apple-like)
+--------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+  background-clip: content-box;
+  border: 2px solid transparent;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  background-clip: content-box;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+  background-clip: content-box;
+}
+
+/* ---------------------------------------------------------------------------
+   OCR / AI loading pulse-ring keyframe
+--------------------------------------------------------------------------- */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+}
+.animate-pulse-ring {
+  animation: pulse-ring 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
