@@ -56,17 +56,26 @@ class AvailabilityService:
         started = time.perf_counter()
         store = get_store()
 
-        # 1) OCR ---------------------------------------------------------
-        ocr_result: OCRResult = await asyncio.to_thread(
-            self._ocr.extract_text, data, content_type, filename
-        )
-        logger.info("OCR extracted %d characters (confidence %.2f)", len(ocr_result.text), ocr_result.confidence)
+        # 1) OCR or direct Gemini Vision -----------------------------------
+        from app.services.ocr_service import paddle_available
+        ocr_text: str = ""
+        ocr_confidence: float = 0.0
+        ocr_pages: int = 1
 
-        # 2) Gemini extraction ----------------------------------------------
-        try:
-            extraction = await self._llm.extract_prescription(ocr_result.text)
-        except LLMError:
-            raise
+        if paddle_available():
+            ocr_result: OCRResult = await asyncio.to_thread(
+                self._ocr.extract_text, data, content_type, filename
+            )
+            ocr_text = ocr_result.text
+            ocr_confidence = ocr_result.confidence
+            ocr_pages = ocr_result.pages
+            logger.info("OCR extracted %d characters (confidence %.2f)", len(ocr_text), ocr_confidence)
+            extraction = await self._llm.extract_prescription(ocr_text)
+        else:
+            logger.info("PaddleOCR unavailable — sending image directly to Gemini Vision")
+            extraction = await self._llm.extract_prescription_from_image(data, content_type)
+            ocr_text = "[direct image analysis — OCR not installed]"
+            ocr_confidence = float(extraction.get("overall_confidence") or 0.0)
         medicines_in: list[dict[str, Any]] = extraction.get("medicines", [])
 
         # 3) Firestore availability for each medicine ----------------------
@@ -132,8 +141,8 @@ class AvailabilityService:
             medicines=results,
             pharmacies=pharmacies,
             user_location=UserLocation(lat=lat, lng=lng) if lat is not None and lng is not None else None,
-            ocr_text=ocr_result.text,
-            ocr_confidence=ocr_result.confidence,
+            ocr_text=ocr_text,
+            ocr_confidence=ocr_confidence,
             processing_ms=int((time.perf_counter() - started) * 1000),
             demo_mode=store.is_demo,
         )

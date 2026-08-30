@@ -14,6 +14,7 @@ Both methods ask the model for JSON only and parse defensively
 (markdown fences stripped, substring extraction, one retry on bad JSON).
 """
 
+import base64
 import json
 import logging
 import re
@@ -115,6 +116,61 @@ class LLMService:
             "Analyse this prescription now and respond with the JSON object only."
         )
         data = await self._chat_json(EXTRACTION_SYSTEM_PROMPT, user_prompt)
+
+        if not isinstance(data, dict):
+            raise LLMError("Gemini returned an unexpected JSON shape")
+        data.setdefault("medicines", [])
+        data.setdefault("warnings", [])
+        data["medicines"] = [m for m in data["medicines"] if isinstance(m, dict) and m.get("name")]
+        return data
+
+    async def extract_prescription_from_image(
+        self, image_bytes: bytes, content_type: Optional[str] = None
+    ) -> dict[str, Any]:
+        """Image bytes -> structured prescription analysis dict (no OCR needed)."""
+        mime = (content_type or "image/jpeg").split(";")[0].strip()
+        if mime not in ("image/jpeg", "image/jpg", "image/png", "image/webp"):
+            mime = "image/jpeg"
+        b64 = base64.b64encode(image_bytes).decode()
+
+        messages: list[dict[str, Any]] = [
+            {"role": "system", "content": EXTRACTION_SYSTEM_PROMPT},
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:{mime};base64,{b64}"},
+                    },
+                    {
+                        "type": "text",
+                        "text": "Analyse this prescription image and respond with the JSON object only.",
+                    },
+                ],
+            },
+        ]
+
+        last_parse_error: Optional[ValueError] = None
+        for _attempt in range(2):
+            content = await self._complete(messages, json_mode=True)
+            try:
+                data = self._parse_json(content)
+                break
+            except ValueError as exc:
+                last_parse_error = exc
+                logger.warning("Gemini vision returned invalid JSON, retrying: %s", exc)
+                messages = messages[:2] + [
+                    {"role": "assistant", "content": content},
+                    {
+                        "role": "user",
+                        "content": (
+                            "Your previous reply was not valid JSON "
+                            f"(error: {exc}). Respond again with ONLY the JSON object."
+                        ),
+                    },
+                ]
+        else:
+            raise LLMError(f"Gemini vision returned invalid JSON after retry: {last_parse_error}")
 
         if not isinstance(data, dict):
             raise LLMError("Gemini returned an unexpected JSON shape")
