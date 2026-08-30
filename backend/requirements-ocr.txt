@@ -1,0 +1,6 @@
+# Optional OCR dependencies — heavy (~1.5 GB), not installed on Railway.
+# For local development only:
+#   pip install -r requirements-ocr.txt
+paddleocr>=3.0,<4.0
+paddlepaddle>=3.0,<4.0
+pymupdf>=1.24,<2.0
