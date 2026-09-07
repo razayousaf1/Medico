@@ -13,6 +13,7 @@ Two interchangeable implementations live here:
 import base64
 import json
 import logging
+from datetime import datetime, timezone
 from difflib import get_close_matches
 from typing import Optional
 
@@ -22,6 +23,20 @@ from app.services import demo_data
 logger = logging.getLogger(__name__)
 
 _IN_CHUNK = 30  # Firestore `in` queries accept at most 30 values
+
+# Real dataset imports started in September 2026. Demo seed data is stamped
+# 2026-08-29, so this cutoff hides stale demo documents until we can delete them.
+_FRESH_SINCE = datetime(2026, 9, 1, tzinfo=timezone.utc)
+
+
+def _is_fresh(doc: dict) -> bool:
+    ts = doc.get("updated_at")
+    if not ts:
+        return False
+    try:
+        return datetime.fromisoformat(ts) >= _FRESH_SINCE
+    except (ValueError, TypeError):
+        return False
 
 
 def _generic_keywords(generic: str | None) -> list[str]:
@@ -138,7 +153,9 @@ class FirestoreStore(DataStore):
                 .limit(10)
             )
             for snap in query.stream():
-                results[snap.id] = {"id": snap.id, **(snap.to_dict() or {})}
+                doc = {"id": snap.id, **(snap.to_dict() or {})}
+                if _is_fresh(doc):
+                    results[snap.id] = doc
 
         if generic and generic.strip() and not results:
             keywords = _generic_keywords(generic)
@@ -149,7 +166,9 @@ class FirestoreStore(DataStore):
                     .limit(10)
                 )
                 for snap in query.stream():
-                    results[snap.id] = {"id": snap.id, **(snap.to_dict() or {})}
+                    doc = {"id": snap.id, **(snap.to_dict() or {})}
+                    if _is_fresh(doc):
+                        results[snap.id] = doc
 
         return list(results.values())
 
@@ -166,7 +185,9 @@ class FirestoreStore(DataStore):
                 .limit(300)
             )
             for snap in query.stream():
-                rows.append({"id": snap.id, **(snap.to_dict() or {})})
+                doc = {"id": snap.id, **(snap.to_dict() or {})}
+                if _is_fresh(doc):
+                    rows.append(doc)
         return rows
 
     def get_pharmacies(self, pharmacy_ids: list[str]) -> dict[str, dict]:
@@ -177,7 +198,9 @@ class FirestoreStore(DataStore):
             refs = [self._db.collection("pharmacies").document(pid) for pid in chunk]
             for snap in self._db.get_all(refs):
                 if snap.exists:
-                    out[snap.id] = {"id": snap.id, **(snap.to_dict() or {})}
+                    doc = {"id": snap.id, **(snap.to_dict() or {})}
+                    if _is_fresh(doc):
+                        out[snap.id] = doc
         return out
 
 

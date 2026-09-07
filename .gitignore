@@ -20,6 +20,7 @@ build/
 # Models & caches
 .paddleocr/
 *.pdiparams*
+backend/scripts/.geocache.json
 
 # IDE / OS
 .vscode/
